@@ -116,12 +116,12 @@ uint8 TIMER_init(void)
 						//case OVERFLOW end
 					case OUTCOMP:
 						TCCR1A = (1u << FOC1A) | (1u << FOC1B);
-						if(timers[Timer1].Timer1_channel == CHANNEL_A)
+						if(timers[Timer1].CTC_flag == Normal_Compare_match)
 						{
-							TCCR1B = (1 << WGM12);
-							OCR1A = timers[Timer1].Compare_reg;
-							if(timers[Timer1].CTC_flag == Normal_Compare_match)
+							if(timers[Timer1].Timer1_channel == CHANNEL_A)
 							{
+								TCCR1B = (1 << WGM12);
+								OCR1A = timers[Timer1].Compare_reg;
 								if(timers[Timer1].interrupt_flag == ON)
 								{
 									SREG  |= (1u << I_bit);
@@ -132,14 +132,10 @@ uint8 TIMER_init(void)
 									TIMSK &= ~(1u << OCIE1A);
 								}
 							}
-							//if(timers[Timer1].CTC_flag == Normal_Compare_match) inside A end
-
-						}// if(timers[Timer1].Timer1_channel == CHANNEL_A) end
-						else if(timers[Timer1].Timer1_channel == CHANNEL_B)
-						{
-							OCR1B = timers[Timer1].Compare_reg;
-							if(timers[Timer1].CTC_flag == Normal_Compare_match)
+							// if(timers[Timer1].Timer1_channel == CHANNEL_A) end
+							else if(timers[Timer1].Timer1_channel == CHANNEL_B)
 							{
+								OCR1B = timers[Timer1].Compare_reg;
 								if(timers[Timer1].interrupt_flag == ON)
 								{
 									SREG  |= (1u << I_bit);
@@ -150,9 +146,9 @@ uint8 TIMER_init(void)
 									TIMSK &= ~(1u << OCIE1B);
 								}
 							}
-							//if(timers[Timer1].CTC_flag == Normal_Compare_match) inside Bend
-
-						}//else if(timers[Timer1].Timer1_channel == CHANNEL_B) end
+							//else if(timers[Timer1].Timer1_channel == CHANNEL_B) end
+						}
+						// if(timers[Timer1].CTC_flag == Normal_Compare_match) end
 						else
 						{
 							retval = NOK;
