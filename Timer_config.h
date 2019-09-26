@@ -43,6 +43,7 @@ typedef enum {No_Clk,No_Prescaler,Prescaler_8,Prescaler_64,Prescaler_256,Prescal
 #define WG_Timer0_PIN PB3
 #define WG_Timer1_ch_A_PIN PD5
 #define WG_Timer1_ch_B_PIN PD4
+#define WG_Timer1_ICP1_PIN PD6
 #define WG_Timer2_PIN PD7
 
 
@@ -54,6 +55,12 @@ typedef enum {No_Clk,No_Prescaler,Prescaler_8,Prescaler_64,Prescaler_256,Prescal
 
 #define Falling_edge 0
 #define Rising_edge 1
+
+#define Positive_edge 0
+#define Negative_edge 1
+
+#define CHANNEL_A 0
+#define CHANNEL B 1
 
 #define INITIALISED 1
 #define UNINITIALISED 0
@@ -70,14 +77,16 @@ typedef struct
 	uint8 EX_clk_edge;
 	uint8 RTC_option;
 	uint8 ICU_option;
+	uint8 ICU_edge_select;
 	uint8 CTC_flag;			//Wave generation or compare timer
+	uint8 Timer1_channel;
 	uint8 WG_PIN;
 	uint8 PWM_mode_option;	//Fast or Phase correct
 	uint8 inverting_mode;	//inverting or non-inverting mode
-	uint8 Timer_reg;
-	uint8 Compare_reg;		//value to put inside the output compare register
-	uint8 PIN_1;			//Input Capture Pin
-	uint8 PIN_2;			//use PIN2 OC1A(PD5) for PWM and CTC modes
+	uint16 Timer_reg;		//Timer register initial value
+	uint16 Compare_reg;		//value to put inside the output compare register
+	uint8 OCR1A_PIN;
+	uint8 OCR1B_PIN;
 	uint8 is_configured;
 }TIMER_cnfg_t;
 

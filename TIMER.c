@@ -9,6 +9,7 @@
 
 static uint8 TIMER_start(uint8 timer);
 volatile uint8 TIMER0_Flag_tick = 0;
+volatile uint8 TIMER1_Flag_tick = 0;
 
 
 status TIMER_init(void)
@@ -22,11 +23,10 @@ status TIMER_init(void)
 			switch (timers[loop_index].timer)
 			{
 			case Timer0:
-				TCNT0 = timers[loop_index].Timer_reg;
+				TCNT0 = (uint8)timers[loop_index].Timer_reg;
 				switch (timers[loop_index].mode)
 				{
 				case OVERFLOW:
-					DIO_write(PORT_A, PIN1, LED, HIGH);
 					if(timers[loop_index].interrupt_flag == ON)
 					{
 						SREG  |= (1 << I_bit);
@@ -40,7 +40,7 @@ status TIMER_init(void)
 					//case OVERFLOW break
 				case OUTCOMP:
 					TCCR0 = (1u << FOC0 | 1u << WGM01);
-					OCR0 = timers[loop_index].Compare_reg;
+					OCR0 = (uint8)timers[loop_index].Compare_reg;
 					if(timers[loop_index].CTC_flag == Normal_Compare_match)
 					{
 						if(timers[loop_index].interrupt_flag == ON)
@@ -92,6 +92,39 @@ status TIMER_init(void)
 				TIMER_start(Timer0);
 				break;
 				//case TIMER_0 break
+				case Timer1:
+					TCNT1 = timers[Timer1].Timer_reg;
+					switch (timers[Timer1].mode)
+					{
+					case OVERFLOW:
+						TCCR1A = (1u << FOC1A) | (1u << FOC1B);
+						if(timers[Timer1].interrupt_flag == ON)
+						{
+							SREG  |= (1u << I_bit);
+							TIMSK |= (1u << TOIE1);
+						}
+						else if(timers[Timer1].interrupt_flag == NA)
+						{
+							TIMSK &= ~(1u << TOIE1);
+						}
+						else
+						{
+							timers[Timer1].is_configured = UNINITIALISED;
+							retval = NOK;
+						}
+						break;
+						//case OVERFLOW end
+					case OUTCOMP:
+						break;
+						//case OUTCOMP end
+					default:
+						retval =  NOK;
+						timers[loop_index].is_configured = UNINITIALISED;
+					}
+					//switch (timers[loop_index].mode) end
+					TIMER_start(Timer1);
+					break;
+					//case timer1 break
 			}
 			//switch (timers[loop_index].timer) end
 		}
@@ -113,7 +146,6 @@ status TIMER_init(void)
 static uint8 TIMER_start(uint8 timer)
 {
 	uint8 retval = OK;
-
 	switch (timer)
 	{
 	case Timer0:
@@ -161,6 +193,54 @@ static uint8 TIMER_start(uint8 timer)
 		else
 		{
 			timers[Timer0].is_configured = UNINITIALISED;
+			retval=NOK;
+		}
+		break;
+	case Timer1:
+		if(timers[Timer1].clk_Oscillator == IN_CLK)
+		{
+			switch (timers[Timer1].prescalar)
+			{
+			case No_Prescaler:
+				TCCR1B = (1u << CS00);
+				break;
+			case Prescaler_8:
+				TCCR1B = ( 1u << CS01);
+				break;
+			case Prescaler_64:
+				TCCR1B = (1u << CS01) | ( 1u << CS00);
+				break;
+			case Prescaler_256:
+				TCCR1B = ( 1u << CS02);
+				break;
+			case Prescaler_1024:
+				TCCR1B = ( 1u << CS02 ) | ( 1u << CS00);
+				break;
+			default:
+				timers[Timer1].is_configured = UNINITIALISED;
+				retval=NOK;
+			}
+		}
+		else if(timers[Timer1].clk_Oscillator == EX_CLK)
+		{
+			//External clock source on T0 pin,Clock on falling edge/Rising edge.
+			if(timers[Timer1].EX_clk_edge==Falling_edge)
+			{
+				TCCR1B = (1u << CS02) | (1u << CS01);
+			}
+			else if(timers[Timer1].EX_clk_edge==Rising_edge)
+			{
+				TCCR1B = (1u << CS02) | (1u << CS01)|( 1u << CS00);
+			}
+			else
+			{
+				timers[Timer1].is_configured = UNINITIALISED;
+				retval=NOK;
+			}
+		}
+		else
+		{
+			timers[Timer1].is_configured = UNINITIALISED;
 			retval=NOK;
 		}
 		break;
@@ -248,4 +328,15 @@ ISR(TIMER0_OVF_vect)
 ISR(TIMER0_COMP_vect)
 {
 	TIMER0_Flag_tick++;
+}
+
+ISR(TIMER1_OVF_vect)
+{
+	TIMER1_Flag_tick++;
+	TCNT1 = timers[Timer1].Timer_reg;
+}
+
+ISR (TIMER1_COMPA_vect)
+{
+
 }

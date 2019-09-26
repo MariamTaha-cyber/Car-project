@@ -16,6 +16,7 @@
 #define NUMBER_OF_OVERFLOWS 4
 
 volatile uint8 TIMER0_Flag_tick;
+volatile uint8 TIMER1_Flag_tick;
 
 
 TIMER_cnfg_t timers[num_of_timers];
