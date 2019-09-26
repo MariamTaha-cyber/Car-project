@@ -1,28 +1,46 @@
+/*
+ * main.c
+ *
+ *  Created on: Sep 20, 2019
+ *      Author: Randa
+ */
+
 #include "Dio.h"
+#include "TIMER.h"
 
-int main(void)
+uint8 toggle_value = 0;
+
+int main()
 {
-	status ret= DIO_init();
+	DIO_init();
 	uint8 button_value;
-
-	if(ret==NOK)
-	{
-		DIO_write(PORT_A,PIN0,ERROR,HIGH);
-	}
-
+	//TIMER_init();
+	TIMER_PWM(100);
 	while(1)
 	{
-		DIO_read(PORT_A,PIN2,BUTTON,&button_value);
-
-		if(button_value==LOW)
+		//Test Timer0
+		if(TIMER0_Flag_tick == NUMBER_OF_OVERFLOWS)
 		{
-			DIO_write(PORT_A,PIN1,LED,HIGH);
+			DIO_write(PORT_A, PIN0, ERROR, toggle_value);
+			toggle_value ^= 1;
+			TIMER0_Flag_tick = 0;
+		}
+
+		//Test DIO
+		DIO_read(PORT_A, PIN2, BUTTON, &button_value);
+		if(button_value == LOW)
+		{
+			//_delay_ms(30);
+			if(button_value == LOW)
+			{
+				DIO_write(PORT_A, PIN1, LED, HIGH);
+			}
 		}
 		else
 		{
-			DIO_write(PORT_A,PIN1,LED,LOW);
+			DIO_write(PORT_A, PIN1, LED, LOW);
 		}
-
 	}
-	return 0;
+return 0;
 }
+
