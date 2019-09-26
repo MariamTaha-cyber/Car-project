@@ -60,7 +60,7 @@ typedef enum {No_Clk,No_Prescaler,Prescaler_8,Prescaler_64,Prescaler_256,Prescal
 #define Negative_edge 1
 
 #define CHANNEL_A 0
-#define CHANNEL B 1
+#define CHANNEL_B 1
 
 #define INITIALISED 1
 #define UNINITIALISED 0

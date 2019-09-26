@@ -12,9 +12,9 @@ volatile uint8 TIMER0_Flag_tick = 0;
 volatile uint8 TIMER1_Flag_tick = 0;
 
 
-status TIMER_init(void)
+uint8 TIMER_init(void)
 {
-	status retval = OK;
+	uint8 retval = OK;
 	uint8 loop_index;
 	if(num_of_timers <= MAX_NUM_OF_TIMERS)
 	{
@@ -62,7 +62,7 @@ status TIMER_init(void)
 					else if(timers[loop_index].CTC_flag == Wave_generation)
 					{
 						//set OC0 as output pin
-						DDRB  = DDRB | (1<<WG_Timer0_PIN);
+						DDRB  = DDRB | (1 << WG_Timer0_PIN);
 						TIMSK &= ~(1u << OCIE0);
 						switch (timers[loop_index].WG_PIN)
 						{
@@ -115,6 +115,49 @@ status TIMER_init(void)
 						break;
 						//case OVERFLOW end
 					case OUTCOMP:
+						TCCR1A = (1u << FOC1A) | (1u << FOC1B);
+						if(timers[Timer1].Timer1_channel == CHANNEL_A)
+						{
+							TCCR1B = (1 << WGM12);
+							OCR1A = timers[Timer1].Compare_reg;
+							if(timers[Timer1].CTC_flag == Normal_Compare_match)
+							{
+								if(timers[Timer1].interrupt_flag == ON)
+								{
+									SREG  |= (1u << I_bit);
+									TIMSK |= (1u << OCIE1A);
+								}
+								else if(timers[Timer1].interrupt_flag == NA)
+								{
+									TIMSK &= ~(1u << OCIE1A);
+								}
+							}
+							//if(timers[Timer1].CTC_flag == Normal_Compare_match) inside A end
+
+						}// if(timers[Timer1].Timer1_channel == CHANNEL_A) end
+						else if(timers[Timer1].Timer1_channel == CHANNEL_B)
+						{
+							OCR1B = timers[Timer1].Compare_reg;
+							if(timers[Timer1].CTC_flag == Normal_Compare_match)
+							{
+								if(timers[Timer1].interrupt_flag == ON)
+								{
+									SREG  |= (1u << I_bit);
+									TIMSK |= (1u << OCIE1B);
+								}
+								else if(timers[Timer1].interrupt_flag == NA)
+								{
+									TIMSK &= ~(1u << OCIE1B);
+								}
+							}
+							//if(timers[Timer1].CTC_flag == Normal_Compare_match) inside Bend
+
+						}//else if(timers[Timer1].Timer1_channel == CHANNEL_B) end
+						else
+						{
+							retval = NOK;
+							timers[Timer1].is_configured = UNINITIALISED;
+						}
 						break;
 						//case OUTCOMP end
 					default:
@@ -338,5 +381,5 @@ ISR(TIMER1_OVF_vect)
 
 ISR (TIMER1_COMPA_vect)
 {
-
+	TIMER1_Flag_tick++;
 }

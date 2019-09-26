@@ -21,7 +21,7 @@ volatile uint8 TIMER1_Flag_tick;
 
 TIMER_cnfg_t timers[num_of_timers];
 
-status TIMER_init(void);
-status TIMER_PWM(uint8 duty_cycle);
+uint8 TIMER_init(void);
+uint8 TIMER_PWM(uint8 duty_cycle);
 
 #endif /* TIMER_H_ */

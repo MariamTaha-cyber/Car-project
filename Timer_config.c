@@ -17,6 +17,6 @@ TIMER_cnfg_t timers[num_of_timers]=
 TIMER_cnfg_t timers[num_of_timers]=
 {
 		{OVERFLOW,Timer0,ON,Prescaler_256,IN_CLK,NA,NA,NA,NA,NA,NA,NA,0x00,NA,NA,NA,INITIALISED},
-		{OVERFLOW,Timer1,ON,Prescaler_256,IN_CLK,NA,NA,NA,NA,NA,NA,NA,0xF9E6,NA,NA,INITIALISED}
+		{OUTCOMP,Timer1,ON,Prescaler_256,IN_CLK,NA,NA,NA,NA,Normal_Compare_match,CHANNEL_A,NA,0x00,0x03E8,NA,INITIALISED}
 };
 
