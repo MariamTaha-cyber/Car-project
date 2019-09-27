@@ -7,13 +7,16 @@
 
 #include "TIMER.h"
 
-static uint8 TIMER_start(uint8 timer);
+static volatile void (*g_callBackTimerPtr)(void) = NULL;
+uint8 g_period = 0;
 volatile uint8 TIMER0_Flag_tick = 0;
 volatile uint8 TIMER1_Flag_tick = 0;
 
+static uint8 TIMER_start(uint8 timer);
 
 uint8 TIMER_init(void)
 {
+
 	uint8 retval = OK;
 	uint8 loop_index;
 	if(num_of_timers <= MAX_NUM_OF_TIMERS)
@@ -149,6 +152,10 @@ uint8 TIMER_init(void)
 							//else if(timers[Timer1].Timer1_channel == CHANNEL_B) end
 						}
 						// if(timers[Timer1].CTC_flag == Normal_Compare_match) end
+						else if(timers[Timer1].CTC_flag ==  Wave_generation)
+						{
+
+						}
 						else
 						{
 							retval = NOK;
@@ -359,6 +366,13 @@ uint8 TIMER_PWM(uint8 duty_cycle)
 	return retval;
 }
 
+void TIMER_delay_sec(void(*appFuncPtr)(void), uint8 period)
+{
+	g_callBackTimerPtr = appFuncPtr;
+	g_period = period;
+	TIMER_init();
+}
+
 ISR(TIMER0_OVF_vect)
 {
 	TIMER0_Flag_tick++;
@@ -378,4 +392,8 @@ ISR(TIMER1_OVF_vect)
 ISR (TIMER1_COMPA_vect)
 {
 	TIMER1_Flag_tick++;
+	if(TIMER1_Flag_tick == g_period)
+	{
+		(*g_callBackTimerPtr)();
+	}
 }
