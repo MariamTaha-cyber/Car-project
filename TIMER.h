@@ -22,6 +22,7 @@ extern volatile uint8 seven_segment_Flag_tick;
 
 uint8 TIMER_init(void);
 uint8 TIMER_PWM(uint8 duty_cycle);
+void PWM(uint8 timer, uint8 duty_cycle);
 void TIMER_delay_sec(void(*ServiceFuncPtr)(void),uint8 delay);
 
 #endif /* TIMER_H_ */

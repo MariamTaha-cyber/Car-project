@@ -10,6 +10,11 @@
 volatile uint8 TIMER0_Flag_tick = 0;
 volatile uint8 TIMER1_Flag_tick = 0;
 volatile uint8 TIMER2_Flag_tick = 0;
+volatile static uint8 PWM_count1 = 0;
+volatile static uint8 PWM_count2 = 0;
+static uint8 toggle_value = 1;
+
+volatile uint8 seven_segment_Flag_tick=0;
 
 volatile uint8 seven_segment_Flag_tick=0;
 
@@ -49,7 +54,6 @@ static uint8 TIMER_start(uint8 timer)
 		}
 		else if(timers[Timer0].clk_Oscillator == EX_CLK)
 		{
-			//External clock source on T0 pin,Clock on falling edge/Rising edge.
 			if(timers[Timer0].EX_clk_edge==Falling_edge)
 			{
 				TCCR0 = (1u << FOC0) |(1u << CS02) | (1u << CS01);
@@ -97,7 +101,6 @@ static uint8 TIMER_start(uint8 timer)
 		}
 		else if(timers[Timer1].clk_Oscillator == EX_CLK)
 		{
-			//External clock source on T0 pin,Clock on falling edge/Rising edge.
 			if(timers[Timer1].EX_clk_edge==Falling_edge)
 			{
 				TCCR1B = (1u << CS02) | (1u << CS01);
@@ -149,7 +152,6 @@ uint8 TIMER_init(void)
 						TIMSK &= ~(1u << TOIE0);
 					}
 					break;
-					//case OVERFLOW break
 				case OUTCOMP:
 					TCCR0 = (1u << FOC0 | 1u << WGM01);
 					OCR0 = (uint8)timers[loop_index].Compare_reg;
@@ -179,31 +181,25 @@ uint8 TIMER_init(void)
 						switch (timers[loop_index].WG_PIN)
 						{
 						case WG_TOGGLE_Pin:
-							TCCR0 = (1u << COM00);	//toggle OC0 on compare match
+							TCCR0 = (1u << COM00);	
 							break;
 						case WG_CLEAR_Pin:
-							TCCR0 = (1u << COM01);	//clear OC0 on compare match
+							TCCR0 = (1u << COM01);
 							break;
 						case WG_SET_Pin:
-							TCCR0 = (1u << COM00 | 1u << COM01);	//set OC0 on compare match
+							TCCR0 = (1u << COM00 | 1u << COM01);	
 							break;
 						default:
 							timers[loop_index].is_configured = UNINITIALISED;
 						}
-						//switch (timers[loop_index].WG_PIN) end
 					}
-					//else if(timers[loop_index].CTC_flag == Wave_generation) end
 					break;
-					//OUTCOMP break
-
 				default:
 					timers[loop_index].is_configured = UNINITIALISED;
 					retval = NOK;
 				}
-				//switch (timers[loop_index].mode) end
 				TIMER_start(Timer0);
 				break;
-				//case TIMER_0 break
 				case Timer1:
 				{
 					TCNT1 = timers[Timer1].Timer_reg;
@@ -228,7 +224,6 @@ uint8 TIMER_init(void)
 						}
 					}
 					break;
-					//case OVERFLOW end
 					case OUTCOMP:
 					{
 						TCCR1A = (1u << FOC1A) | (1u << FOC1B);
@@ -248,7 +243,6 @@ uint8 TIMER_init(void)
 									TIMSK &= ~(1u << OCIE1A);
 								}
 							}
-							// if(timers[Timer1].Timer1_channel == CHANNEL_A) end
 							else if(timers[loop_index].Timer1_channel == CHANNEL_B)
 							{
 								OCR1B = timers[loop_index].Compare_reg;
@@ -262,9 +256,7 @@ uint8 TIMER_init(void)
 									TIMSK &= ~(1u << OCIE1B);
 								}
 							}
-							//else if(timers[Timer1].Timer1_channel == CHANNEL_B) end
 						}
-						// if(timers[Timer1].CTC_flag == Normal_Compare_match) end
 						else
 						{
 							retval = NOK;
@@ -272,24 +264,18 @@ uint8 TIMER_init(void)
 						}
 					}
 					break;
-					//case OUTCOMP end
 					default:
 					{
 						retval =  NOK;
 						timers[loop_index].is_configured = UNINITIALISED;
 					}
 					}
-					//switch (timers[loop_index].mode) end
 					TIMER_start(Timer1);
 				}
 				break;
-				//case timer1 break
 			}
-			//switch (timers[loop_index].timer) end
 		}
-		//for loop end
 	}
-	//if(num_of_timers <= MAX_NUM_OF_TIMERS) end
 	else
 	{
 		for(loop_index = 0; loop_index < num_of_timers; loop_index++)
@@ -298,13 +284,11 @@ uint8 TIMER_init(void)
 		}
 		retval = NOK;
 	}
-	// else if(num_of_timers > MAX_NUM_OF_TIMERS) end
 	return retval;
 }
 
 //Timer PWM mode initialization function
 uint8 TIMER_PWM(uint8 duty_cycle)
-
 {
 	uint8 retval = OK;
 	uint8 loop_index;
@@ -375,6 +359,35 @@ uint8 TIMER_PWM(uint8 duty_cycle)
 	return retval;
 }
 
+void PWM(uint8 timer, uint8 duty_cycle)
+{
+
+	DIO_write(PORT_B, PIN3, test, toggle_value);
+
+	TCCR0 = (1u << FOC0 | 1u << WGM01);
+	TCNT0 = 0;
+	OCR0 = (uint8) 250;
+	SREG  |= (1 << I_bit);
+	TIMSK |= (1u << OCIE0);
+	TIMER_start(timer);
+
+	if(duty_cycle == 25)
+	{
+		PWM_count1 = 1;
+		PWM_count2 = 4;
+	}
+	else if(duty_cycle == 50)
+	{
+		PWM_count1 = 2;
+		PWM_count2 = 4;
+	}
+	else if(duty_cycle == 75)
+	{
+		PWM_count1 = 3;
+		PWM_count2 = 4;
+	}
+
+}
 //set call back function
 void TIMER_delay_sec(void(*ServiceFuncPtr)(void),uint8 delay)
 {
@@ -390,6 +403,16 @@ ISR(TIMER0_OVF_vect)
 ISR(TIMER0_COMP_vect)
 {
 	TIMER0_Flag_tick++;
+	if(TIMER0_Flag_tick == PWM_count1)
+	{
+		DIO_write(PORT_B, PIN3, test, toggle_value);
+	}
+	else if(TIMER0_Flag_tick == PWM_count2)
+	{
+		toggle_value ^= 1;
+		DIO_write(PORT_B, PIN3, test, toggle_value);
+		TIMER0_Flag_tick = 0;
+	}
 }
 
 ISR(TIMER1_OVF_vect)
