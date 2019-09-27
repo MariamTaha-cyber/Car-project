@@ -1,17 +1,127 @@
 /*
- * TIMER.c
+ * Timers.c
  *
  *  Created on: Sep 21, 2019
- *      Author: Randa
+ *      Author: Mariam Taha
  */
 
-#include "TIMER.h"
+#include "Timers.h"
 
-static uint8 TIMER_start(uint8 timer);
 volatile uint8 TIMER0_Flag_tick = 0;
 volatile uint8 TIMER1_Flag_tick = 0;
+volatile uint8 TIMER2_Flag_tick = 0;
 
+static volatile void (*g_Timer_callBackPtr)(void) = NULL;
+uint8 g_delay=0;
 
+//Clk set function
+static uint8 TIMER_start(uint8 timer)
+{
+	uint8 retval = OK;
+	switch (timer)
+	{
+	case Timer0:
+		if(timers[Timer0].clk_Oscillator == IN_CLK)
+		{
+			switch (timers[Timer0].prescalar)
+			{
+			case No_Prescaler:
+				TCCR0 |= (1u << FOC0 )| (1u << CS00);
+				break;
+			case Prescaler_8:
+				TCCR0 |= (1u << FOC0) |( 1u << CS01);
+				break;
+			case Prescaler_64:
+				TCCR0 |= (1u << FOC0) | (1u << CS01) |( 1u << CS00);
+				break;
+			case Prescaler_256:
+				TCCR0 |= (1u << FOC0) |( 1u << CS02);
+				break;
+			case Prescaler_1024:
+				TCCR0 |= (1u << FOC0 )|( 1u << CS02 )|( 1u << CS00);
+				break;
+			default:
+				timers[timer].is_configured = UNINITIALISED;
+				retval=NOK;
+			}
+		}
+		else if(timers[Timer0].clk_Oscillator == EX_CLK)
+		{
+			//External clock source on T0 pin,Clock on falling edge/Rising edge.
+			if(timers[Timer0].EX_clk_edge==Falling_edge)
+			{
+				TCCR0 = (1u << FOC0) |(1u << CS02) | (1u << CS01);
+			}
+			else if(timers[Timer0].EX_clk_edge==Rising_edge)
+			{
+				TCCR0 = (1u << FOC0) | (1u << CS02) | (1u << CS01)|( 1u << CS00);
+			}
+			else
+			{
+				timers[Timer0].is_configured = UNINITIALISED;
+				retval=NOK;
+			}
+		}
+		else
+		{
+			timers[Timer0].is_configured = UNINITIALISED;
+			retval=NOK;
+		}
+		break;
+	case Timer1:
+		if(timers[Timer1].clk_Oscillator == IN_CLK)
+		{
+			switch (timers[Timer1].prescalar)
+			{
+			case No_Prescaler:
+				TCCR1B |= (1u << CS00);
+				break;
+			case Prescaler_8:
+				TCCR1B |= ( 1u << CS01);
+				break;
+			case Prescaler_64:
+				TCCR1B |= (1u << CS01) | ( 1u << CS00);
+				break;
+			case Prescaler_256:
+				TCCR1B |= ( 1u << CS02);
+				break;
+			case Prescaler_1024:
+				TCCR1B |= ( 1u << CS02 ) | ( 1u << CS00);
+				break;
+			default:
+				timers[Timer1].is_configured = UNINITIALISED;
+				retval=NOK;
+			}
+		}
+		else if(timers[Timer1].clk_Oscillator == EX_CLK)
+		{
+			//External clock source on T0 pin,Clock on falling edge/Rising edge.
+			if(timers[Timer1].EX_clk_edge==Falling_edge)
+			{
+				TCCR1B = (1u << CS02) | (1u << CS01);
+			}
+			else if(timers[Timer1].EX_clk_edge==Rising_edge)
+			{
+				TCCR1B = (1u << CS02) | (1u << CS01)|( 1u << CS00);
+			}
+			else
+			{
+				timers[Timer1].is_configured = UNINITIALISED;
+				retval=NOK;
+			}
+		}
+		else
+		{
+			timers[Timer1].is_configured = UNINITIALISED;
+			retval=NOK;
+		}
+		break;
+	}
+
+	return retval;
+}
+
+//Timer modes initialization function
 uint8 TIMER_init(void)
 {
 	uint8 retval = OK;
@@ -93,10 +203,12 @@ uint8 TIMER_init(void)
 				break;
 				//case TIMER_0 break
 				case Timer1:
+				{
 					TCNT1 = timers[Timer1].Timer_reg;
 					switch (timers[Timer1].mode)
 					{
 					case OVERFLOW:
+					{
 						TCCR1A = (1u << FOC1A) | (1u << FOC1B);
 						if(timers[Timer1].interrupt_flag == ON)
 						{
@@ -112,36 +224,38 @@ uint8 TIMER_init(void)
 							timers[Timer1].is_configured = UNINITIALISED;
 							retval = NOK;
 						}
-						break;
-						//case OVERFLOW end
+					}
+					break;
+					//case OVERFLOW end
 					case OUTCOMP:
+					{
 						TCCR1A = (1u << FOC1A) | (1u << FOC1B);
-						if(timers[Timer1].CTC_flag == Normal_Compare_match)
+						if(timers[loop_index].CTC_flag == Normal_Compare_match)
 						{
-							if(timers[Timer1].Timer1_channel == CHANNEL_A)
+							if(timers[loop_index].Timer1_channel == CHANNEL_A)
 							{
 								TCCR1B = (1 << WGM12);
-								OCR1A = timers[Timer1].Compare_reg;
-								if(timers[Timer1].interrupt_flag == ON)
+								OCR1A = timers[loop_index].Compare_reg;
+								if(timers[loop_index].interrupt_flag == ON)
 								{
 									SREG  |= (1u << I_bit);
 									TIMSK |= (1u << OCIE1A);
 								}
-								else if(timers[Timer1].interrupt_flag == NA)
+								else if(timers[loop_index].interrupt_flag == NA)
 								{
 									TIMSK &= ~(1u << OCIE1A);
 								}
 							}
 							// if(timers[Timer1].Timer1_channel == CHANNEL_A) end
-							else if(timers[Timer1].Timer1_channel == CHANNEL_B)
+							else if(timers[loop_index].Timer1_channel == CHANNEL_B)
 							{
-								OCR1B = timers[Timer1].Compare_reg;
-								if(timers[Timer1].interrupt_flag == ON)
+								OCR1B = timers[loop_index].Compare_reg;
+								if(timers[loop_index].interrupt_flag == ON)
 								{
 									SREG  |= (1u << I_bit);
 									TIMSK |= (1u << OCIE1B);
 								}
-								else if(timers[Timer1].interrupt_flag == NA)
+								else if(timers[loop_index].interrupt_flag == NA)
 								{
 									TIMSK &= ~(1u << OCIE1B);
 								}
@@ -152,18 +266,22 @@ uint8 TIMER_init(void)
 						else
 						{
 							retval = NOK;
-							timers[Timer1].is_configured = UNINITIALISED;
+							timers[loop_index].is_configured = UNINITIALISED;
 						}
-						break;
-						//case OUTCOMP end
+					}
+					break;
+					//case OUTCOMP end
 					default:
+					{
 						retval =  NOK;
 						timers[loop_index].is_configured = UNINITIALISED;
 					}
+					}
 					//switch (timers[loop_index].mode) end
 					TIMER_start(Timer1);
-					break;
-					//case timer1 break
+				}
+				break;
+				//case timer1 break
 			}
 			//switch (timers[loop_index].timer) end
 		}
@@ -182,113 +300,9 @@ uint8 TIMER_init(void)
 	return retval;
 }
 
-static uint8 TIMER_start(uint8 timer)
-{
-	uint8 retval = OK;
-	switch (timer)
-	{
-	case Timer0:
-		if(timers[Timer0].clk_Oscillator == IN_CLK)
-		{
-			switch (timers[Timer0].prescalar)
-			{
-			case No_Prescaler:
-				TCCR0 |= (1u << FOC0 )| (1u << CS00);
-				break;
-			case Prescaler_8:
-				TCCR0 |= (1u << FOC0) |( 1u << CS01);
-				break;
-			case Prescaler_64:
-				TCCR0 |= (1u << FOC0) | (1u << CS01) |( 1u << CS00);
-				break;
-			case Prescaler_256:
-				TCCR0 |= (1u << FOC0) |( 1u << CS02);
-				break;
-			case Prescaler_1024:
-				TCCR0 |= (1u << FOC0 )|( 1u << CS02 )|( 1u << CS00);
-				break;
-			default:
-				timers[timer].is_configured = UNINITIALISED;
-				retval=NOK;
-			}
-		}
-		else if(timers[Timer0].clk_Oscillator == EX_CLK)
-		{
-			//External clock source on T0 pin,Clock on falling edge/Rising edge.
-			if(timers[Timer0].EX_clk_edge==Falling_edge)
-			{
-				TCCR0 = (1u << FOC0) |(1u << CS02) | (1u << CS01);
-			}
-			else if(timers[Timer0].EX_clk_edge==Rising_edge)
-			{
-				TCCR0 = (1u << FOC0) | (1u << CS02) | (1u << CS01)|( 1u << CS00);
-			}
-			else
-			{
-				timers[Timer0].is_configured = UNINITIALISED;
-				retval=NOK;
-			}
-		}
-		else
-		{
-			timers[Timer0].is_configured = UNINITIALISED;
-			retval=NOK;
-		}
-		break;
-	case Timer1:
-		if(timers[Timer1].clk_Oscillator == IN_CLK)
-		{
-			switch (timers[Timer1].prescalar)
-			{
-			case No_Prescaler:
-				TCCR1B = (1u << CS00);
-				break;
-			case Prescaler_8:
-				TCCR1B = ( 1u << CS01);
-				break;
-			case Prescaler_64:
-				TCCR1B = (1u << CS01) | ( 1u << CS00);
-				break;
-			case Prescaler_256:
-				TCCR1B = ( 1u << CS02);
-				break;
-			case Prescaler_1024:
-				TCCR1B = ( 1u << CS02 ) | ( 1u << CS00);
-				break;
-			default:
-				timers[Timer1].is_configured = UNINITIALISED;
-				retval=NOK;
-			}
-		}
-		else if(timers[Timer1].clk_Oscillator == EX_CLK)
-		{
-			//External clock source on T0 pin,Clock on falling edge/Rising edge.
-			if(timers[Timer1].EX_clk_edge==Falling_edge)
-			{
-				TCCR1B = (1u << CS02) | (1u << CS01);
-			}
-			else if(timers[Timer1].EX_clk_edge==Rising_edge)
-			{
-				TCCR1B = (1u << CS02) | (1u << CS01)|( 1u << CS00);
-			}
-			else
-			{
-				timers[Timer1].is_configured = UNINITIALISED;
-				retval=NOK;
-			}
-		}
-		else
-		{
-			timers[Timer1].is_configured = UNINITIALISED;
-			retval=NOK;
-		}
-		break;
-	}
-
-	return retval;
-}
-
+//Timer PWM mode initialization function
 uint8 TIMER_PWM(uint8 duty_cycle)
+
 {
 	uint8 retval = OK;
 	uint8 loop_index;
@@ -359,6 +373,13 @@ uint8 TIMER_PWM(uint8 duty_cycle)
 	return retval;
 }
 
+//set call back function
+void TIMER_delay_sec(void(*ServiceFuncPtr)(void),uint8 delay)
+{
+	g_Timer_callBackPtr=ServiceFuncPtr;
+	g_delay=delay;
+}
+
 ISR(TIMER0_OVF_vect)
 {
 	TIMER0_Flag_tick++;
@@ -378,4 +399,19 @@ ISR(TIMER1_OVF_vect)
 ISR (TIMER1_COMPA_vect)
 {
 	TIMER1_Flag_tick++;
+
+	/*if(TIMER1_Flag_tick==g_delay)
+	{
+		(*g_Timer_callBackPtr)();
+	}*/
+}
+
+ISR(TIMER2_OVF_vect)
+{
+	TIMER2_Flag_tick++;
+}
+
+ISR(TIMER2_COMP_vect)
+{
+	TIMER2_Flag_tick++;
 }
