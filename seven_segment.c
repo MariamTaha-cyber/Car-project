@@ -24,7 +24,7 @@ void seven_segment_init(void)
 
 void seven_segment_increment(void)
 {
-	if(TIMER1_Flag_tick==1)
+	if(seven_segment_Flag_tick==1)
 	{
 		seconds_count_increment++;
 
@@ -32,7 +32,7 @@ void seven_segment_increment(void)
 		{
 			seconds_count_increment = 0;
 		}
-		TIMER1_Flag_tick=0;
+		seven_segment_Flag_tick=0;
 	}
 	else
 	{
@@ -44,7 +44,7 @@ void seven_segment_increment(void)
 
 void seven_segment_decrement(void)
 {
-	if(TIMER1_Flag_tick==1)
+	if(seven_segment_Flag_tick==1)
 	{
 		seconds_count_decrement--;
 
@@ -52,7 +52,7 @@ void seven_segment_decrement(void)
 		{
 			seconds_count_decrement = 9;
 		}
-		TIMER1_Flag_tick=0;
+		seven_segment_Flag_tick=0;
 	}
 	else
 	{
