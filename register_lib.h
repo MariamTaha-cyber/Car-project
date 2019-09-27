@@ -92,12 +92,52 @@
 #define FOC0 7
 
 //Timer1 Registers
+#define TCCR1A (*(volatile uint8 * const)0x004F)
+#define TCCR1B (*(volatile uint8 * const)0x004E)
+#define TCNT1H (*(volatile uint8 * const)0x004D)
+#define TCNT1L (*(volatile uint8 * const)0x004C)
+#define OCR1AH (*(volatile uint8 * const)0x004B)
+#define OCR1AL (*(volatile uint8 * const)0x004A)
+#define OCR1BH (*(volatile uint8 * const)0x0049)
+#define OCR1BL (*(volatile uint8 * const)0x0048)
+#define ICR1H (*(volatile uint8 * const)0x0047)
+#define ICR1L (*(volatile uint8 * const)0x0046)
 
 //Timer2 Registers
 #define TCCR2 (*(volatile uint8 * const)0x0045)
 #define TCNT2 (*(volatile uint8 * const)0x0044)
 #define OCR2 (*(volatile uint8 * const)0x0043)
 #define ASSR (*(volatile uint8 * const)0x0042)
+
+//Timer1 TCCR1A Pins
+#define WGM10 0
+#define WGM11 1
+#define FOC1B 2
+#define FOC1A 3
+#define COM1B0 4
+#define COM1B1 5
+#define COM1A0 6
+#define COM1A1 7
+
+//Timer1 TCCR1B Pins
+#define CS10 0
+#define CS11 1
+#define CS12 2
+#define WGM12 3
+#define WGM13 4
+#define ICES1 6
+#define ICNC1 7
+
+//Timer2 control register Pins (TCCR2)
+
+#define CS20 0
+#define CS21 1
+#define CS22 2
+#define WGM21 3
+#define COM20 4
+#define COM21 5
+#define WGM20 6
+#define FOC2 7
 
 //Global interrupt pin
 
@@ -125,19 +165,5 @@
 #define ICF1 5
 #define TOV2 6
 #define OCF2 7
-
-
-#define TCCR1A (*(volatile uint8 * const)0x004F)
-#define TCCR1B (*(volatile uint8 * const)0x004E)
-#define TCNT1H (*(volatile uint8 * const)0x004D)
-#define TCNT1L (*(volatile uint8 * const)0x004C)
-#define OCR1AH (*(volatile uint8 * const)0x004B)
-#define OCR1AL (*(volatile uint8 * const)0x004A)
-#define OCR1BH (*(volatile uint8 * const)0x0049)
-#define OCR1BL (*(volatile uint8 * const)0x0048)
-#define ICR1H (*(volatile uint8 * const)0x0047)
-#define ICR1L (*(volatile uint8 * const)0x0046)
-
-
 
 #endif /* REGISTER_LIB_H_ */
