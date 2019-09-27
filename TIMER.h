@@ -23,5 +23,6 @@ TIMER_cnfg_t timers[num_of_timers];
 
 uint8 TIMER_init(void);
 uint8 TIMER_PWM(uint8 duty_cycle);
+void TIMER_delay_sec(void(*appFuncPtr)(void), uint8 period);
 
 #endif /* TIMER_H_ */
