@@ -2,10 +2,10 @@
 #include "Dio.h"
 
 
-status DIO_init(void)
+uint8 DIO_init(void)
 {
 	uint8 loop_index;
-	status retval=OK;
+	uint8 retval=OK;
 
 	if(num_of_pins<=Max_num_of_pins)
 	{
@@ -209,9 +209,9 @@ status DIO_init(void)
 
 
 
-status DIO_read(uint8 port,uint8 pin,uint8 peripheral_index,uint8* value)
+uint8 DIO_read(uint8 port,uint8 pin,uint8 peripheral_index,uint8* value)
 {
-	status retvalue=OK;
+	uint8 retvalue=OK;
 
 	if ((Peripherals[peripheral_index].PORT==port)&&(Peripherals[peripheral_index].PIN==pin))
 	{
@@ -244,9 +244,9 @@ status DIO_read(uint8 port,uint8 pin,uint8 peripheral_index,uint8* value)
 	return retvalue;
 }
 
-status DIO_write(uint8 port,uint8 pin,uint8 peripheral_index,uint8 value)
+uint8 DIO_write(uint8 port,uint8 pin,uint8 peripheral_index,uint8 value)
 {
-	status retvalue=OK;
+	uint8 retvalue=OK;
 	if ((Peripherals[peripheral_index].PORT==port)&&(Peripherals[peripheral_index].PIN==pin))
 	{
 		if((Peripherals[peripheral_index].is_configured==INITIALIZED)&&(Peripherals[peripheral_index].direction==OUTPUT))

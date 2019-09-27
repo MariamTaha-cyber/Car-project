@@ -7,7 +7,6 @@
 
 
 #include "service.h"
-#include "motor.h"
 
 void motor_switch(void)
 {
@@ -18,10 +17,13 @@ void motor_switch(void)
 int main(void)
 {
 	uint8 delay = 10;
-	MOTOR_init();
-	//7 seg
+
+	service_init();
+
 	while(1)
 	{
 		delay_sec(motor_switch, delay);
+
 	}
 }
+
