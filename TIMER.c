@@ -11,6 +11,8 @@ volatile uint8 TIMER0_Flag_tick = 0;
 volatile uint8 TIMER1_Flag_tick = 0;
 volatile uint8 TIMER2_Flag_tick = 0;
 
+volatile uint8 seven_segment_Flag_tick=0;
+
 static volatile void (*g_Timer_callBackPtr)(void) = NULL;
 uint8 g_delay=0;
 
@@ -399,11 +401,13 @@ ISR(TIMER1_OVF_vect)
 ISR (TIMER1_COMPA_vect)
 {
 	TIMER1_Flag_tick++;
+	seven_segment_Flag_tick++;
 
-	/*if(TIMER1_Flag_tick==g_delay)
+	if(TIMER1_Flag_tick==g_delay)
 	{
+		TIMER1_Flag_tick=0;
 		(*g_Timer_callBackPtr)();
-	}*/
+	}
 }
 
 ISR(TIMER2_OVF_vect)

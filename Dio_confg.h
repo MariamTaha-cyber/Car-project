@@ -4,7 +4,7 @@
 
 #include "std_types.h"
 
-typedef enum {ERROR,LED,BUTTON,num_of_pins}PINS_t;
+typedef enum {MotorOut1,MotorOut2,num_of_pins}PINS_t;
 
 typedef struct
 {
@@ -32,6 +32,9 @@ typedef struct
 
 #define HIGH 1
 #define LOW 0
+
+#define NOK 0
+#define OK 1
 
 #define PULLUP 1
 #define EXTERNAL 0

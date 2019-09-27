@@ -17,6 +17,7 @@
 
 extern volatile uint8 TIMER0_Flag_tick;
 extern volatile uint8 TIMER1_Flag_tick;
+extern volatile uint8 seven_segment_Flag_tick;
 
 
 uint8 TIMER_init(void);

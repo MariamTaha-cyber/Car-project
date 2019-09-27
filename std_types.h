@@ -27,5 +27,7 @@ typedef signed long long sint64;
 typedef float float32;
 typedef double float64;
 
+#define NULL ((void*)0)
+
 
 #endif
