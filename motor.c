@@ -7,18 +7,22 @@
 #include "motor.h"
 
 
-uint8 clockwise = HIGH;
-uint8 anti_clockwise = LOW;
+uint8 OUTPUT1 = HIGH;
+uint8 OUTPUT2 = LOW;
 
 void MOTOR_init(void)
 {
 	DIO_init();
+	DIO_write(PORT_A, PIN0, MotorOut1, HIGH);
+	DIO_write(PORT_A, PIN1, MotorOut2, LOW);
 }
 void MOTOR_toggle(void)
 {
-	DIO_write(PORT_A, PIN0, MotorOut1, clockwise);
-	DIO_write(PORT_A, PIN1, MotorOut2, anti_clockwise);
-	clockwise ^= 1u;
-	anti_clockwise ^= 1u;
+	OUTPUT1 ^= 1u;
+	OUTPUT2 ^= 1u;
+
+	DIO_write(PORT_A, PIN0, MotorOut1, OUTPUT1);
+	DIO_write(PORT_A, PIN1, MotorOut2, OUTPUT2);
+
 }
 
